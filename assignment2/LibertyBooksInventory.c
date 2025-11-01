@@ -1,172 +1,169 @@
 #include <stdio.h>
 
-void addBook(int isbns[], char titles[][50], float prices[], int quantities[], int* bookCount);
-void processSale(int isbns[], float prices[], int quantities[], int bookCount);
-void generateLowStockReport(int isbns[], char titles[][50], float prices[], int quantities[], int bookCount);
+#define MAX_BOOKS 100
+
+void addBook(int isbns[], char titles[][50], float prices[], int quantities[], int *count);
+void processSale(int isbns[], float prices[], int quantities[], int count);
+void showLowStock(int isbns[], char titles[][50], float prices[], int quantities[], int count);
 
 int main()
 {
-    int isbns[100];
-    char titles[100][50];
-    float prices[100];
-    int quantities[100];
-    int bookCount = 0; 
-    int menuChoice;
+    int isbns[MAX_BOOKS];
+    char titles[MAX_BOOKS][50];
+    float prices[MAX_BOOKS];
+    int quantities[MAX_BOOKS];
+    int count = 0;
+    int choice;
 
     do
     {
-        printf("\n--- Liberty Books Inventory System ---\n");
-        printf("1. Add New Book\n");
-        printf("2. Process a Sale\n");
-        printf("3. Generate Low-Stock Report\n");
+        printf("\n--- LIBERTY BOOKS STORE ---\n");
+        printf("1. Add Book\n");
+        printf("2. Sell Book\n");
+        printf("3. Low Stock Report\n");
         printf("4. Exit\n");
-        printf("Enter your choice: ");
-        scanf("%d", &menuChoice);
+        printf("Enter choice: ");
+        scanf("%d", &choice);
 
-        switch(menuChoice)
+        switch(choice)
         {
             case 1:
-                addBook(isbns, titles, prices, quantities, &bookCount);
+                addBook(isbns, titles, prices, quantities, &count);
                 break;
             case 2:
-                processSale(isbns, prices, quantities, bookCount);
+                processSale(isbns, prices, quantities, count);
                 break;
             case 3:
-                generateLowStockReport(isbns, titles, prices, quantities, bookCount);
+                showLowStock(isbns, titles, prices, quantities, count);
                 break;
             case 4:
-                printf("\nExiting system. Goodbye!\n");
+                printf("\nExiting... Thank you!\n");
                 break;
             default:
-                printf("\nInvalid choice. Please try again.\n");
+                printf("\nInvalid choice, try again.\n");
         }
-    } while(menuChoice != 4);
+    } while(choice != 4);
 
     return 0;
 }
 
-void addBook(int isbns[], char titles[][50], float prices[], int quantities[], int* bookCount)
+void addBook(int isbns[], char titles[][50], float prices[], int quantities[], int *count)
 {
-    int newIsbn;
-    int i;
-    int isDuplicate = 0;
+    int isbn, i, exists = 0;
 
-    if(*bookCount >= 100)
+    if(*count >= MAX_BOOKS)
     {
-        printf("\nError: Inventory is full. Cannot add more books.\n");
+        printf("\nInventory full. Cannot add more books.\n");
         return;
     }
 
-    printf("\nEnter new ISBN: ");
-    scanf("%d", &newIsbn);
+    printf("\nEnter ISBN: ");
+    scanf("%d", &isbn);
 
-    for(i = 0; i < *bookCount; i++)
+    for(i = 0; i < *count; i++)
     {
-        if(isbns[i] == newIsbn)
+        if(isbns[i] == isbn)
         {
-            isDuplicate = 1;
+            exists = 1;
             break;
         }
     }
 
-    if(isDuplicate == 1)
+    if(exists)
     {
-        printf("\nError: A book with this ISBN already exists.\n");
+        printf("\nBook with this ISBN already exists.\n");
     }
     else
     {
-        isbns[*bookCount] = newIsbn;
-        
-        printf("Enter book title: ");
-        scanf(" %[^\n]", titles[*bookCount]); 
-        
-        printf("Enter book price: ");
-        scanf("%f", &prices[*bookCount]);
-        
-        printf("Enter book quantity: ");
-        scanf("%d", &quantities[*bookCount]);
-        
-        printf("\nSuccess: Book added to inventory.\n");
-        
-        (*bookCount)++;
+        isbns[*count] = isbn;
+        printf("Enter Title: ");
+        scanf(" %[^\n]", titles[*count]);
+        printf("Enter Price: ");
+        scanf("%f", &prices[*count]);
+        printf("Enter Quantity: ");
+        scanf("%d", &quantities[*count]);
+
+        (*count)++;
+        printf("\nBook added successfully!\n");
     }
 }
 
-void processSale(int isbns[], float prices[], int quantities[], int bookCount)
+void processSale(int isbns[], float prices[], int quantities[], int count)
 {
-    int searchIsbn;
-    int saleQuantity;
-    int foundIndex = -1;
-    int i;
+    int isbn, qty, i, found = -1;
 
-    if(bookCount == 0)
+    if(count == 0)
     {
-        printf("\nError: Inventory is empty. Cannot process sale.\n");
+        printf("\nNo books in inventory.\n");
         return;
     }
 
-    printf("\nEnter ISBN of book sold: ");
-    scanf("%d", &searchIsbn);
+    printf("\nEnter ISBN to sell: ");
+    scanf("%d", &isbn);
 
-    for(i = 0; i < bookCount; i++)
+    for(i = 0; i < count; i++)
     {
-        if(isbns[i] == searchIsbn)
+        if(isbns[i] == isbn)
         {
-            foundIndex = i;
+            found = i;
             break;
         }
     }
 
-    if(foundIndex == -1)
+    if(found == -1)
     {
-        printf("\nError: Book with this ISBN not found.\n");
+        printf("\nBook not found.\n");
     }
     else
     {
-        printf("Enter number of copies sold: ");
-        scanf("%d", &saleQuantity);
+        printf("Enter quantity sold: ");
+        scanf("%d", &qty);
 
-        if(saleQuantity <= 0)
+        if(qty <= 0)
         {
-            printf("\nError: Invalid quantity.\n");
+            printf("\nInvalid quantity.\n");
         }
-        else if(saleQuantity > quantities[foundIndex])
+        else if(qty > quantities[found])
         {
-            printf("\nError: Not enough stock. Only %d copies available.\n", quantities[foundIndex]);
+            printf("\nNot enough stock. Available: %d\n", quantities[found]);
         }
         else
         {
-            quantities[foundIndex] = quantities[foundIndex] - saleQuantity;
-            printf("\nSuccess: Sale processed. %.2f due.\n", saleQuantity * prices[foundIndex]);
-            printf("Remaining stock for ISBN %d: %d\n", isbns[foundIndex], quantities[foundIndex]);
+            quantities[found] -= qty;
+            printf("\nSale successful! Total: %.2f\n", qty * prices[found]);
+            printf("Remaining stock: %d\n", quantities[found]);
         }
     }
 }
 
-void generateLowStockReport(int isbns[], char titles[][50], float prices[], int quantities[], int bookCount)
+void showLowStock(int isbns[], char titles[][50], float prices[], int quantities[], int count)
 {
-    int i;
-    int foundLowStock = 0;
+    int i, found = 0;
 
-    printf("\n--- Low-Stock Report (Quantity < 5) ---\n");
-    printf("------------------------------------------\n");
+    if(count == 0)
+    {
+        printf("\nNo books in inventory.\n");
+        return;
+    }
 
-    for(i = 0; i < bookCount; i++)
+    printf("\n--- LOW STOCK REPORT (less than 5) ---\n");
+
+    for(i = 0; i < count; i++)
     {
         if(quantities[i] < 5)
         {
-            printf("ISBN:     %d\n", isbns[i]);
-            printf("Title:    %s\n", titles[i]);
-            printf("Price:    %.2f\n", prices[i]);
+            printf("\nISBN: %d\n", isbns[i]);
+            printf("Title: %s\n", titles[i]);
+            printf("Price: %.2f\n", prices[i]);
             printf("Quantity: %d\n", quantities[i]);
-            printf("------------------------------------------\n");
-            foundLowStock = 1;
+            found = 1;
         }
     }
 
-    if(foundLowStock == 0)
+    if(!found)
     {
-        printf("No books are currently low in stock.\n");
+        printf("\nAll books have enough stock.\n");
     }
 }
+
 
