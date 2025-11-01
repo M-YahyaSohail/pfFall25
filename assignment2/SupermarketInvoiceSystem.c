@@ -1,235 +1,215 @@
 #include <stdio.h>
-#include <string.h> 
+#include <string.h>
 
-void customerInfo(char customerName[], char customerCnic[], int* customerNameSet);
-void displayInventory(int codes[], int stock[], float prices[]);
-void addItemToCart(int invCodes[], int invStock[], int cartCodes[], int cartQuantities[], int* cartItemCount);
-void showInvoice(char name[], char cnic[], int customerNameSet, int cartCodes[], int cartQuantities[], int* cartItemCount, int invCodes[], int invStock[], float invPrices[]);
-void updateStock(int cartCodes[], int cartQuantities[], int cartItemCount, int invCodes[], int invStock[]);
-float calculateBill(int cartCodes[], int cartQuantities[], int cartItemCount, int invCodes[], float invPrices[]);
+#define MAX_ITEMS 100
+#define INVENTORY_SIZE 4
+
+void getCustomer(char name[], char cnic[], int *hasCustomer);
+void showInventory(int codes[], int stock[], float prices[]);
+void addToCart(int codes[], int stock[], int cartCodes[], int cartQty[], int *cartCount);
+void checkout(char name[], char cnic[], int hasCustomer, int cartCodes[], int cartQty[], int *cartCount, int invCodes[], int invStock[], float invPrices[]);
+float getTotal(int cartCodes[], int cartQty[], int cartCount, int invCodes[], float invPrices[]);
+void updateInventory(int cartCodes[], int cartQty[], int cartCount, int invCodes[], int invStock[]);
 
 int main()
 {
-    int inventoryCodes[4] = {1, 2, 3, 4};
-    int inventoryStock[4] = {50, 10, 20, 8};
-    float inventoryPrices[4] = {100.0, 200.0, 300.0, 150.0};
-    
+    int invCodes[INVENTORY_SIZE] = {1, 2, 3, 4};
+    int invStock[INVENTORY_SIZE] = {50, 10, 20, 8};
+    float invPrices[INVENTORY_SIZE] = {100.0, 200.0, 300.0, 150.0};
+
     char customerName[50];
     char customerCnic[20];
-    int customerNameSet = 0; 
+    int hasCustomer = 0;
 
-    int cartCodes[100];
-    int cartQuantities[100];
-    int cartItemCount = 0;
+    int cartCodes[MAX_ITEMS];
+    int cartQty[MAX_ITEMS];
+    int cartCount = 0;
 
-    int menuChoice;
+    int choice;
 
     do
     {
-        printf("\n--- Supermarket Billing System ---\n");
-        printf("1. Enter Customer Information\n");
-        printf("2. Display Inventory\n");
+        printf("\n--- SUPERMARKET MENU ---\n");
+        printf("1. Enter Customer Info\n");
+        printf("2. Show Inventory\n");
         printf("3. Add Item to Cart\n");
-        printf("4. Show Invoice & Checkout\n");
+        printf("4. Checkout\n");
         printf("5. Exit\n");
-        printf("Enter your choice: ");
-        scanf("%d", &menuChoice);
+        printf("Enter choice: ");
+        scanf("%d", &choice);
 
-        switch(menuChoice)
+        switch(choice)
         {
             case 1:
-                customerInfo(customerName, customerCnic, &customerNameSet);
+                getCustomer(customerName, customerCnic, &hasCustomer);
                 break;
             case 2:
-                displayInventory(inventoryCodes, inventoryStock, inventoryPrices);
+                showInventory(invCodes, invStock, invPrices);
                 break;
             case 3:
-                addItemToCart(inventoryCodes, inventoryStock, cartCodes, cartQuantities, &cartItemCount);
+                addToCart(invCodes, invStock, cartCodes, cartQty, &cartCount);
                 break;
             case 4:
-                showInvoice(customerName, customerCnic, customerNameSet, cartCodes, cartQuantities, &cartItemCount, inventoryCodes, inventoryStock, inventoryPrices);
+                checkout(customerName, customerCnic, hasCustomer, cartCodes, cartQty, &cartCount, invCodes, invStock, invPrices);
                 break;
             case 5:
-                printf("\nExiting system. Goodbye!\n");
+                printf("\nExiting system...\n");
                 break;
             default:
-                printf("\nInvalid choice. Please try again.\n");
+                printf("\nInvalid choice, try again.\n");
         }
-    } while(menuChoice != 5);
+
+    } while(choice != 5);
 
     return 0;
 }
 
-void customerInfo(char customerName[], char customerCnic[], int* customerNameSet)
+void getCustomer(char name[], char cnic[], int *hasCustomer)
 {
-    printf("\nEnter Customer Name: ");
-    scanf(" %[^\n]", customerName);
-    printf("Enter Customer CNIC: ");
-    scanf(" %[^\n]", customerCnic);
-    
-    *customerNameSet = 1; 
-    printf("\nCustomer information saved.\n");
+    printf("\nEnter Name: ");
+    scanf(" %[^\n]", name);
+    printf("Enter CNIC: ");
+    scanf(" %[^\n]", cnic);
+
+    *hasCustomer = 1;
+    printf("\nCustomer saved.\n");
 }
 
-void displayInventory(int codes[], int stock[], float prices[])
+void showInventory(int codes[], int stock[], float prices[])
 {
     int i;
-    printf("\n--- Available Products ---\n");
-    printf("Product Code\tQuantity in Stock\tPrice per Product\n");
-    printf("----------------------------------------------------------\n");
-    
-    for(i = 0; i < 4; i++)
+    printf("\n--- AVAILABLE ITEMS ---\n");
+    printf("Code\tStock\tPrice\n");
+    printf("--------------------------\n");
+
+    for(i = 0; i < INVENTORY_SIZE; i++)
     {
-        printf("%-15d\t%-17d\t%.2f\n", codes[i], stock[i], prices[i]);
+        printf("%d\t%d\t%.2f\n", codes[i], stock[i], prices[i]);
     }
 }
 
-void addItemToCart(int invCodes[], int invStock[], int cartCodes[], int cartQuantities[], int* cartItemCount)
+void addToCart(int codes[], int stock[], int cartCodes[], int cartQty[], int *cartCount)
 {
-    int productCode;
-    int quantity;
-    int foundIndex = -1;
-    int i;
+    int code, qty, i, found = -1;
 
-    if(*cartItemCount >= 100)
+    if(*cartCount >= MAX_ITEMS)
     {
-        printf("\nError: Cart is full.\n");
+        printf("\nCart full!\n");
         return;
     }
 
-    printf("\nEnter Product Code to add: ");
-    scanf("%d", &productCode);
-    
-    for(i = 0; i < 4; i++)
+    printf("\nEnter Product Code: ");
+    scanf("%d", &code);
+
+    for(i = 0; i < INVENTORY_SIZE; i++)
     {
-        if(invCodes[i] == productCode)
+        if(codes[i] == code)
         {
-            foundIndex = i;
+            found = i;
             break;
         }
     }
 
-    if(foundIndex == -1)
+    if(found == -1)
     {
-        printf("\nError: Product code not found.\n");
+        printf("\nInvalid product code.\n");
     }
     else
     {
-        printf("Enter quantity: ");
-        scanf("%d", &quantity);
+        printf("Enter Quantity: ");
+        scanf("%d", &qty);
 
-        if(quantity <= 0)
-        {
-            printf("\nError: Invalid quantity.\n");
-        }
-        else if(quantity > invStock[foundIndex])
-        {
-            printf("\nError: Not enough stock. Only %d available.\n", invStock[foundIndex]);
-        }
+        if(qty <= 0)
+            printf("\nInvalid quantity.\n");
+        else if(qty > stock[found])
+            printf("\nNot enough stock. Only %d available.\n", stock[found]);
         else
         {
-            cartCodes[*cartItemCount] = productCode;
-            cartQuantities[*cartItemCount] = quantity;
-            (*cartItemCount)++;
-            printf("\nSuccess: Item added to cart.\n");
+            cartCodes[*cartCount] = code;
+            cartQty[*cartCount] = qty;
+            (*cartCount)++;
+            printf("\nItem added to cart.\n");
         }
     }
 }
 
-void showInvoice(char name[], char cnic[], int customerNameSet, int cartCodes[], int cartQuantities[], int* cartItemCount, int invCodes[], int invStock[], float invPrices[])
+void checkout(char name[], char cnic[], int hasCustomer, int cartCodes[], int cartQty[], int *cartCount, int invCodes[], int invStock[], float invPrices[])
 {
-    float totalBill;
-    float discountAmount = 0.0;
-    float finalBill;
-    char promoCode[20];
-    int hasDiscount = 0;
-
-    if(customerNameSet == 0)
+    if(!hasCustomer)
     {
-        printf("\nError: Please enter customer information (Option 1) first.\n");
+        printf("\nEnter customer info first.\n");
         return;
     }
 
-    if(*cartItemCount == 0)
+    if(*cartCount == 0)
     {
-        printf("\nError: Your cart is empty. Please add items (Option 3) first.\n");
+        printf("\nCart is empty.\n");
         return;
     }
 
-    totalBill = calculateBill(cartCodes, cartQuantities, *cartItemCount, invCodes, invPrices);
-    
-    printf("\nDo you have a promocode? (Type 'Eid2025' or 'No'): ");
-    scanf("%s", promoCode);
+    float total = getTotal(cartCodes, cartQty, *cartCount, invCodes, invPrices);
+    float discount = 0, final = total;
+    char code[20];
 
-    if(strcmp(promoCode, "Eid2025") == 0)
+    printf("\nEnter promo code (Eid2025 or No): ");
+    scanf("%s", code);
+
+    if(strcmp(code, "Eid2025") == 0)
     {
-        hasDiscount = 1;
-        discountAmount = totalBill * 0.25; 
-        finalBill = totalBill - discountAmount;
-        printf("Promocode 'Eid2025' applied!\n");
-    }
-    else
-    {
-        finalBill = totalBill;
+        discount = total * 0.25;
+        final = total - discount;
+        printf("\nPromo applied! 25%% off.\n");
     }
 
-    printf("\n\n--- FINAL INVOICE ---\n");
-    printf("Customer Name: %s\n", name);
-    printf("Customer CNIC: %s\n", cnic);
-    printf("--------------------------\n");
-    printf("Total Bill (w/o discount): %.2f\n", totalBill);
-    
-    if(hasDiscount == 1)
-    {
-        printf("Discount (25%%):          -%.2f\n", discountAmount);
-        printf("Final Bill (w/ discount):  %.2f\n", finalBill);
-    }
-    else
-    {
-        printf("Discount:                  N/A\n");
-        printf("Final Bill:                %.2f\n", finalBill);
-    }
-    printf("--------------------------\n");
-    printf("Thank you for shopping!\n\n");
+    printf("\n--- INVOICE ---\n");
+    printf("Customer: %s\n", name);
+    printf("CNIC: %s\n", cnic);
+    printf("-------------------\n");
+    printf("Total: %.2f\n", total);
+    printf("Discount: %.2f\n", discount);
+    printf("Final: %.2f\n", final);
+    printf("-------------------\n");
+    printf("Thank you for shopping!\n");
 
-    updateStock(cartCodes, cartQuantities, *cartItemCount, invCodes, invStock);
-    
-    *cartItemCount = 0;
-    printf("Checkout complete. Inventory updated and cart cleared.\n");
+    updateInventory(cartCodes, cartQty, *cartCount, invCodes, invStock);
+    *cartCount = 0;
 }
 
-float calculateBill(int cartCodes[], int cartQuantities[], int cartItemCount, int invCodes[], float invPrices[])
+float getTotal(int cartCodes[], int cartQty[], int cartCount, int invCodes[], float invPrices[])
 {
-    float total = 0.0;
+    float total = 0;
     int i, j;
 
-    for(i = 0; i < cartItemCount; i++)
+    for(i = 0; i < cartCount; i++)
     {
-        for(j = 0; j < 4; j++)
+        for(j = 0; j < INVENTORY_SIZE; j++)
         {
             if(cartCodes[i] == invCodes[j])
             {
-                total = total + (cartQuantities[i] * invPrices[j]);
-                break; 
+                total += cartQty[i] * invPrices[j];
+                break;
             }
         }
     }
+
     return total;
 }
 
-void updateStock(int cartCodes[], int cartQuantities[], int cartItemCount, int invCodes[], int invStock[])
+void updateInventory(int cartCodes[], int cartQty[], int cartCount, int invCodes[], int invStock[])
 {
     int i, j;
-    
-    for(i = 0; i < cartItemCount; i++)
+
+    for(i = 0; i < cartCount; i++)
     {
-        for(j = 0; j < 4; j++)
+        for(j = 0; j < INVENTORY_SIZE; j++)
         {
             if(cartCodes[i] == invCodes[j])
             {
-                invStock[j] = invStock[j] - cartQuantities[i];
-                break; 
+                invStock[j] -= cartQty[i];
+                break;
             }
         }
     }
+
+    printf("\nStock updated.\n");
 }
