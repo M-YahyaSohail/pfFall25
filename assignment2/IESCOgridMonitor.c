@@ -1,199 +1,134 @@
 #include <stdio.h>
 
-#define GRID_SIZE 5 
-#define POWER_ON 1  
-#define OVERLOAD 2  
-#define MAINTENANCE 4 
+#define SIZE 5
 
-void updateSectorStatus(int grid[][GRID_SIZE]);
-void querySectorStatus(int grid[][GRID_SIZE]);
-void runSystemDiagnostic(int grid[][GRID_SIZE]);
-void initializeGrid(int grid[][GRID_SIZE]);
+void initializeGrid(int power[][SIZE], int overload[][SIZE], int maintenance[][SIZE]);
+void updateSector(int power[][SIZE], int overload[][SIZE], int maintenance[][SIZE]);
+void viewSector(int power[][SIZE], int overload[][SIZE], int maintenance[][SIZE]);
+void diagnostics(int power[][SIZE], int overload[][SIZE], int maintenance[][SIZE]);
 
-int main()
-{
-    int grid[GRID_SIZE][GRID_SIZE];
-    int menuChoice;
-    
-    initializeGrid(grid); 
+int main() {
+    int power[SIZE][SIZE];
+    int overload[SIZE][SIZE];
+    int maintenance[SIZE][SIZE];
+    int choice;
 
-    do
-    {
-        printf("\n--- IESCO Power Grid Monitor (ICT) ---\n");
+    initializeGrid(power, overload, maintenance);
+
+    do {
+        printf("\n===== IESCO Power Grid Monitor =====\n");
         printf("1. Update Sector Status\n");
-        printf("2. Query Sector Status\n");
+        printf("2. View Sector Status\n");
         printf("3. Run System Diagnostic\n");
         printf("4. Exit\n");
         printf("Enter your choice: ");
-        scanf("%d", &menuChoice);
+        scanf("%d", &choice);
 
-        switch(menuChoice)
-        {
+        switch (choice) {
             case 1:
-                updateSectorStatus(grid);
+                updateSector(power, overload, maintenance);
                 break;
             case 2:
-                querySectorStatus(grid);
+                viewSector(power, overload, maintenance);
                 break;
             case 3:
-                runSystemDiagnostic(grid);
+                diagnostics(power, overload, maintenance);
                 break;
             case 4:
-                printf("\nExiting system.\n");
+                printf("\nExiting system... Goodbye!\n");
                 break;
             default:
                 printf("\nInvalid choice. Please try again.\n");
         }
-    } while(menuChoice != 4);
+
+    } while (choice != 4);
 
     return 0;
 }
 
-void initializeGrid(int grid[][GRID_SIZE])
-{
-    int i, j;
-    for(i = 0; i < GRID_SIZE; i++)
-    {
-        for(j = 0; j < GRID_SIZE; j++)
-        {
-            grid[i][j] = 0;
+void initializeGrid(int power[][SIZE], int overload[][SIZE], int maintenance[][SIZE]) {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            power[i][j] = 0;
+            overload[i][j] = 0;
+            maintenance[i][j] = 0;
         }
     }
 }
 
-void updateSectorStatus(int grid[][GRID_SIZE])
-{
-    int row, col;
-    int flagChoice;
-    int statusChoice;
-    int mask;
+void updateSector(int power[][SIZE], int overload[][SIZE], int maintenance[][SIZE]) {
+    int row, col, choice, status;
 
     printf("\nEnter sector coordinates (row col): ");
     scanf("%d %d", &row, &col);
 
-    if(row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE)
-    {
-        printf("\nError: Invalid coordinates.\n");
+    if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
+        printf("Invalid coordinates! Please try again.\n");
         return;
     }
 
-    printf("Select flag to update:\n");
-    printf("  1. Power Status\n");
-    printf("  2. Overload Warning\n");
-    printf("  3. Maintenance Required\n");
+    printf("\nSelect what to update:\n");
+    printf("1. Power\n");
+    printf("2. Overload\n");
+    printf("3. Maintenance\n");
     printf("Choice: ");
-    scanf("%d", &flagChoice);
+    scanf("%d", &choice);
 
-    switch(flagChoice)
-    {
+    printf("Enter status (1 = ON/Yes, 0 = OFF/No): ");
+    scanf("%d", &status);
+
+    switch (choice) {
         case 1:
-            mask = POWER_ON;
+            power[row][col] = status;
+            printf("Power status updated.\n");
             break;
         case 2:
-            mask = OVERLOAD;
+            overload[row][col] = status;
+            printf("Overload status updated.\n");
             break;
         case 3:
-            mask = MAINTENANCE;
+            maintenance[row][col] = status;
+            printf("Maintenance status updated.\n");
             break;
         default:
-            printf("\nError: Invalid flag choice.\n");
-            return;
-    }
-
-    printf("Select status:\n");
-    printf("  1. Set (ON / Yes)\n");
-    printf("  0. Clear (OFF / No)\n");
-    printf("Choice: ");
-    scanf("%d", &statusChoice);
-
-    if(statusChoice == 1)
-    {
-        grid[row][col] = grid[row][col] | mask;
-        printf("\nSuccess: Sector (%d, %d) flag SET.\n", row, col);
-    }
-    else if(statusChoice == 0)
-    {
-        grid[row][col] = grid[row][col] & (~mask);
-        printf("\nSuccess: Sector (%d, %d) flag CLEARED.\n", row, col);
-    }
-    else
-    {
-        printf("\nError: Invalid status choice.\n");
+            printf("Invalid option!\n");
     }
 }
 
-void querySectorStatus(int grid[][GRID_SIZE])
-{
+void viewSector(int power[][SIZE], int overload[][SIZE], int maintenance[][SIZE]) {
     int row, col;
-    int status;
 
-    printf("\nEnter sector coordinates to query (row col): ");
+    printf("\nEnter sector coordinates (row col): ");
     scanf("%d %d", &row, &col);
 
-    if(row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE)
-    {
-        printf("\nError: Invalid coordinates.\n");
+    if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) {
+        printf("Invalid coordinates!\n");
         return;
     }
 
-    status = grid[row][col];
-    
-    printf("\n--- Status Report for Sector (%d, %d) ---\n", row, col);
-
-    if(status & POWER_ON)
-    {
-        printf("  Power Status: ON\n");
-    }
-    else
-    {
-        printf("  Power Status: OFF\n");
-    }
-
-    if(status & OVERLOAD)
-    {
-        printf("  Overload Warning: YES (Overloaded)\n");
-    }
-    else
-    {
-        printf("  Overload Warning: NO (Normal)\n");
-    }
-    
-    if(status & MAINTENANCE)
-    {
-        printf("  Maintenance: YES (Required)\n");
-    }
-    else
-    {
-        printf("  Maintenance: NO (Not Required)\n");
-    }
+    printf("\n--- Sector (%d, %d) Status ---\n", row, col);
+    printf("Power: %s\n", power[row][col] ? "ON" : "OFF");
+    printf("Overload: %s\n", overload[row][col] ? "YES" : "NO");
+    printf("Maintenance: %s\n", maintenance[row][col] ? "REQUIRED" : "NOT REQUIRED");
 }
 
-void runSystemDiagnostic(int grid[][GRID_SIZE])
-{
+void diagnostics(int power[][SIZE], int overload[][SIZE], int maintenance[][SIZE]) {
+    int total = SIZE * SIZE;
     int overloadCount = 0;
     int maintenanceCount = 0;
-    int i, j;
 
-    for(i = 0; i < GRID_SIZE; i++)
-    {
-        for(j = 0; j < GRID_SIZE; j++)
-        {
-            int status = grid[i][j];
-
-            if(status & OVERLOAD)
-            {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (overload[i][j])
                 overloadCount++;
-            }
-            if(status & MAINTENANCE)
-            {
+            if (maintenance[i][j])
                 maintenanceCount++;
-            }
         }
     }
 
-    printf("\n--- System Diagnostic Report ---\n");
-    printf("Total Sectors Scanned: %d\n", GRID_SIZE * GRID_SIZE);
-    printf("Sectors Overloaded:    %d\n", overloadCount);
-    printf("Sectors Req. Maint.:   %d\n", maintenanceCount);
-    printf("--------------------------------\n");
+    printf("\n===== System Diagnostic Report =====\n");
+    printf("Total sectors: %d\n", total);
+    printf("Overloaded sectors: %d\n", overloadCount);
+    printf("Maintenance required: %d\n", maintenanceCount);
+    printf("====================================\n");
 }
