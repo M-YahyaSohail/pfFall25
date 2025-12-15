@@ -1,34 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-int **create_matrix(int m, int n) {
-    
-   
-    int **p = (int**)malloc(m * sizeof(int*));
-    if (p == NULL){
-        return NULL;
-    } 
-    
-    int *data = (int*)malloc(m * n * sizeof(int));
-    if (data == NULL) {
-        free(p);
-        return NULL;
+void print(int **ptr, int arr[]) {
+  for (int i = 0; i < 10; i++) {
+    printf("\nROW %d -->", i + 1);
+    for (int j = 0; j < arr[i]; j++) {
+      printf("%d", ptr[i][j]);
     }
-    
-    for (int i = 0; i < m; i++) {
-        p[i] = data + (i * n); 
-    }
-    
-    return p;
+  }
 }
-
-void destroy_matrix_optimized(int **p) {
-    if (p == NULL){
-        return; 
-    } 
-    
-    free(p[0]); 
-
-    free(p);
-    
+int main() {
+  int column_count[10];
+  int **ptr = malloc(10 * sizeof(int *));
+  for (int i = 0; i < 10; i++) {
+    int n = 0;
+    printf("Enter number of columns for row %d: ", i + 1);
+    scanf("%d", &n);
+    column_count[i] = n;
+    ptr[i] = malloc(n * sizeof(int));
+    for (int j = 0; j < n; j++) {
+      ptr[i][j] = i + 1;
+    }
+  }
+  print(ptr, column_count);
+  for (int i=0;i<10;i++){
+    free(ptr[i]);
+  }
+  free(ptr);
+  return 0;
 }
